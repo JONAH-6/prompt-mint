@@ -4,6 +4,8 @@ import { useWallet } from "@/hooks/useWallet";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { shortenAddress } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { WalletPermissionsPanel } from "./wallet/WalletPermissionsPanel";
+import { WalletCompatibilityChecklist } from "./wallet/WalletCompatibilityChecklist";
 
 const DisplayWallet = () => {
   const { address, status, error, connect, disconnect } = useWallet();
@@ -81,6 +83,8 @@ const DisplayWallet = () => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-slate-900 border border-white/10 rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
             <h3 className="text-lg font-bold mb-4 text-white">Select a Wallet</h3>
+            <WalletPermissionsPanel className="mb-4" />
+            <WalletCompatibilityChecklist className="mb-4" />
             <div className="flex flex-col space-y-3">
               <Button variant="outline" onClick={() => void handleConnect("freighter")} className="w-full justify-start border-white/10 text-white hover:bg-white/10 hover:text-white">
                 Freighter

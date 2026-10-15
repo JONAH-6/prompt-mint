@@ -6,6 +6,8 @@ import { Button as ShadcnButton } from "./ui/button";
 import { Loader2, AlertCircle, X } from "lucide-react";
 import { getSupportedWallets } from "@/util/wallet";
 import { trackEvent } from "@/lib/analytics/track";
+import { WalletPermissionsPanel } from "./wallet/WalletPermissionsPanel";
+import { WalletCompatibilityChecklist } from "./wallet/WalletCompatibilityChecklist";
 
 const KNOWN_WALLETS: { id: string; name: string }[] = [
   { id: "freighter", name: "Freighter" },
@@ -157,6 +159,8 @@ export const WalletButton = () => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-slate-900 border border-white/10 rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">
             <h3 className="text-lg font-bold mb-4 text-white">Select a Wallet</h3>
+            <WalletPermissionsPanel className="mb-4" />
+            <WalletCompatibilityChecklist className="mb-4" />
             <div className="flex flex-col space-y-3">
               {availableWallets.map((w) => (
                 <ShadcnButton

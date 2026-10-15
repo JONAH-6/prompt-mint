@@ -9,6 +9,10 @@ import {
 import { wallet } from "../util/wallet";
 import storage from "../util/storage";
 import { stellarNetwork } from "../lib/env";
+import {
+  WALLET_SESSION_TTL_MS,
+  getSessionExpiresAt,
+} from "../lib/wallet/session";
 import { ALBEDO_ID } from "@creit.tech/stellar-wallets-kit";
 import { useAsyncTransaction } from "../components/useAsyncTransaction";
 import { trackEvent, trackEventWithWallet } from "../lib/analytics/track";
@@ -30,6 +34,8 @@ export interface WalletContextType {
   networkPassphrase?: string;
   status: WalletStatus;
   error?: string;
+  connectedAt?: number;
+  sessionExpiresAt?: number;
   connect: (_id: string) => Promise<void>;
   disconnect: () => Promise<void>;
   reconnect: () => Promise<void>;
@@ -62,6 +68,8 @@ const initialState = {
   networkPassphrase: undefined,
   status: "idle" as WalletStatus,
   error: undefined,
+  connectedAt: undefined as number | undefined,
+  sessionExpiresAt: undefined as number | undefined,
 };
 
 const boundSignTransaction = wallet.signTransaction.bind(wallet);
@@ -92,6 +100,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         storage.removeItem("walletAddress");
         storage.removeItem("walletNetwork");
         storage.removeItem("networkPassphrase");
+        storage.removeItem("walletConnectedAt");
         trackEvent("wallet_disconnected", {});
         setState(initialState);
       }
@@ -136,8 +145,10 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         setState(prev => ({ ...prev, status: "connecting", error: undefined }));
       },
       onSuccess: (data) => {
+        const connectedAt = Date.now();
         storage.setItem("walletId", data.walletId);
         storage.setItem("walletAddress", data.address);
+        storage.setItem("walletConnectedAt", connectedAt);
         if (data.network) storage.setItem("walletNetwork", data.network);
         else storage.removeItem("walletNetwork");
         
@@ -150,6 +161,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           networkPassphrase: data.networkPassphrase,
           status: "connected",
           error: undefined,
+          connectedAt,
+          sessionExpiresAt: getSessionExpiresAt(connectedAt, WALLET_SESSION_TTL_MS),
         });
         trackEventWithWallet("wallet_connected", data.address, { walletKind: data.walletId });
       },
@@ -278,7 +291,9 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       ]);
 
       if (a.address) {
+        const connectedAt = Date.now();
         storage.setItem("walletAddress", a.address);
+        storage.setItem("walletConnectedAt", connectedAt);
         if (n.network) storage.setItem("walletNetwork", n.network);
         if (n.networkPassphrase) storage.setItem("networkPassphrase", n.networkPassphrase);
 
@@ -288,6 +303,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           networkPassphrase: n.networkPassphrase,
           status: "connected",
           error: undefined,
+          connectedAt,
+          sessionExpiresAt: getSessionExpiresAt(connectedAt, WALLET_SESSION_TTL_MS),
         });
         trackEventWithWallet("wallet_connected", a.address, { walletKind: savedId, reconnected: true });
       } else {
@@ -370,6 +387,12 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           if (a.address !== savedAddr) {
             storage.setItem("walletAddress", a.address);
           }
+          const savedConnectedAt = storage.getItem("walletConnectedAt", "safe");
+          const connectedAt =
+            typeof savedConnectedAt === "number" ? savedConnectedAt : Date.now();
+          if (typeof savedConnectedAt !== "number") {
+            storage.setItem("walletConnectedAt", connectedAt);
+          }
           if (aborted) return;
           setState({
             address: a.address,
@@ -377,6 +400,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
             networkPassphrase: n.networkPassphrase,
             status: "connected",
             error: undefined,
+            connectedAt,
+            sessionExpiresAt: getSessionExpiresAt(connectedAt, WALLET_SESSION_TTL_MS),
           });
           trackEventWithWallet("wallet_connected", a.address, { walletKind: savedId, sessionRestored: true });
         } else {

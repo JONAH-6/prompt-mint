@@ -6,6 +6,9 @@ import { Box } from "../components/layout/Box.tsx";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useContracts } from "../debug/hooks/useContracts.ts";
 import RenderContractMetadata from "../debug/components/RenderContractMetadata.tsx";
+import { LedgerSequenceDisplay } from "../debug/components/LedgerSequenceDisplay.tsx";
+import { network } from "../contracts/util.ts";
+import { getNetworkHeaders } from "../debug/util/getNetworkHeaders.ts";
 
 const Debugger: React.FC = () => {
   const { data, isLoading } = useContracts();
@@ -91,6 +94,12 @@ const Debugger: React.FC = () => {
           You can debug & interact with your deployed contracts here. Check{" "}
           <Code size="md">src/contracts/*.ts</Code>
         </p>
+        <div style={{ marginTop: "0.75rem" }}>
+          <LedgerSequenceDisplay
+            rpcUrl={network.rpcUrl}
+            headers={getNetworkHeaders(network, "rpc")}
+          />
+        </div>
         <hr />
       </Layout.Inset>
 

@@ -15,6 +15,7 @@ import {
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import DisplayWallet from "./DisplayWallet";
+import { WalletSessionCountdown } from "./wallet/WalletSessionCountdown";
 import { ThemeToggle } from "./ThemeToggle";
 import { CurrencyToggle } from "./CurrencyToggle";
 import { NotificationCenter } from "./NotificationCenter";
@@ -160,6 +161,7 @@ export function Navigation() {
             <NotificationCenter />
             <ThemeToggle />
             <InstallAppButton />
+            <WalletSessionCountdown />
             <DisplayWallet />
           </div>
 
